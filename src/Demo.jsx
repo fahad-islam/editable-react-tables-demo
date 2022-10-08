@@ -1,34 +1,33 @@
-import * as React from 'react';
-import {
-  DataGrid,
-} from '@mui/x-data-grid';
+import * as React from "react";
+import { DataGrid } from "@mui/x-data-grid";
 import {
   randomCreatedDate,
   randomTraderName,
   randomUpdatedDate,
-} from '@mui/x-data-grid-generator';
-import Snackbar from '@mui/material/Snackbar';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import Alert from '@mui/material/Alert';
-
+} from "@mui/x-data-grid-generator";
+import Snackbar from "@mui/material/Snackbar";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import Alert from "@mui/material/Alert";
+import { randomNumberBetween } from "@mui/x-data-grid/utils/utils";
+import { useEffect } from "react";
 
 const useFakeMutation = () => {
   return React.useCallback(
     (user) =>
       new Promise((resolve, reject) =>
         setTimeout(() => {
-          if (user.name?.trim() === '') {
+          if (user.name?.trim() === "") {
             reject();
           } else {
             resolve(user);
           }
-        }, 200),
+        }, 200)
       ),
-    [],
+    []
   );
 };
 
@@ -37,7 +36,16 @@ function computeMutation(newRow, oldRow) {
     return `Name from '${oldRow.name}' to '${newRow.name}'`;
   }
   if (newRow.age !== oldRow.age) {
-    return `Age from '${oldRow.age || ''}' to '${newRow.age || ''}'`;
+    return `Age from '${oldRow.age || ""}' to '${newRow.age || ""}'`;
+  }
+  if (newRow.dateCreated !== oldRow.dateCreated) {
+    function formatDate(date) {
+      date = new Date(date);
+      return `${date.getMonth()}/${date.getDay()}/${date.getYear()}`;
+    }
+    return `Age from '${formatDate(oldRow.dateCreated) || ""}' to '${
+      formatDate(newRow.dateCreated) || ""
+    }'`;
   }
   return null;
 }
@@ -62,7 +70,7 @@ export default function AskConfirmationBeforeSave() {
           resolve(oldRow); // Nothing was changed
         }
       }),
-    [],
+    []
   );
 
   const handleNo = () => {
@@ -77,11 +85,11 @@ export default function AskConfirmationBeforeSave() {
     try {
       // Make the HTTP request to save in the backend
       const response = await mutateRow(newRow);
-      setSnackbar({ children: 'User successfully saved', severity: 'success' });
+      setSnackbar({ children: "User successfully saved", severity: "success" });
       resolve(response);
       setPromiseArguments(null);
     } catch (error) {
-      setSnackbar({ children: "Name can't be empty", severity: 'error' });
+      setSnackbar({ children: "Name can't be empty", severity: "error" });
       reject(oldRow);
       setPromiseArguments(null);
     }
@@ -101,29 +109,31 @@ export default function AskConfirmationBeforeSave() {
 
     const { newRow, oldRow } = promiseArguments;
     const mutation = computeMutation(newRow, oldRow);
+    handleYes();
 
     return (
-      <Dialog
-        maxWidth={"xs"}
-        TransitionProps={{ onEntered: handleEntered }}
-        open={!!promiseArguments}
-      >
-        <DialogTitle>Are you sure?</DialogTitle>
-        <DialogContent dividers>
-          {`Pressing 'Yes' will change ${mutation}.`}
-        </DialogContent>
-        <DialogActions>
-          <Button ref={noButtonRef} onClick={handleNo}>
-            No
-          </Button>
-          <Button onClick={handleYes}>Yes</Button>
-        </DialogActions>
-      </Dialog>
+      <></>
+      // <Dialog
+      //   maxWidth={"xs"}
+      //   TransitionProps={{ onEntered: handleEntered }}
+      //   open={!!promiseArguments}
+      // >
+      //   <DialogTitle>Are you sure?</DialogTitle>
+      //   <DialogContent dividers>
+      //     {`Pressing 'Yes' will change ${mutation}.`}
+      //   </DialogContent>
+      //   <DialogActions>
+      //     <Button ref={noButtonRef} onClick={handleNo}>
+      //       No
+      //     </Button>
+      //     <Button onClick={handleYes}>Yes</Button>
+      //   </DialogActions>
+      // </Dialog>
     );
   };
 
   return (
-    <div style={{ height: 400, width: '100%' }}>
+    <div style={{ height: 400, width: "100%" }}>
       {renderConfirmDialog()}
       <DataGrid
         rows={rows}
@@ -141,57 +151,35 @@ export default function AskConfirmationBeforeSave() {
 }
 
 const columns = [
-  { field: 'name', headerName: 'Name', width: 180, editable: true },
-  { field: 'age', headerName: 'Age', type: 'number', editable: true },
   {
-    field: 'dateCreated',
-    headerName: 'Date Created',
-    type: 'date',
+    field: "name",
+    headerName: "Name",
     width: 180,
-    editable: true
+    type: "option",
+    editable: true,
+  },
+  { field: "age", headerName: "Age", type: "number", editable: true },
+  {
+    field: "dateCreated",
+    headerName: "Date Created",
+    type: "date",
+    width: 180,
+    editable: true,
   },
   {
-    field: 'lastLogin',
-    headerName: 'Last Login',
-    type: 'dateTime',
+    field: "lastLogin",
+    headerName: "Last Login",
+    type: "dateTime",
     width: 220,
   },
 ];
 
-const rows = [
-  {
-    id: 1,
+const rows = Array(200)
+  .fill(null)
+  .map((_, idx) => ({
+    id: idx,
     name: randomTraderName(),
-    age: 25,
+    age: (Math.random() * 100).toFixed(0),
     dateCreated: randomCreatedDate(),
     lastLogin: randomUpdatedDate(),
-  },
-  {
-    id: 2,
-    name: randomTraderName(),
-    age: 36,
-    dateCreated: randomCreatedDate(),
-    lastLogin: randomUpdatedDate(),
-  },
-  {
-    id: 3,
-    name: randomTraderName(),
-    age: 19,
-    dateCreated: randomCreatedDate(),
-    lastLogin: randomUpdatedDate(),
-  },
-  {
-    id: 4,
-    name: randomTraderName(),
-    age: 28,
-    dateCreated: randomCreatedDate(),
-    lastLogin: randomUpdatedDate(),
-  },
-  {
-    id: 5,
-    name: randomTraderName(),
-    age: 23,
-    dateCreated: randomCreatedDate(),
-    lastLogin: randomUpdatedDate(),
-  },
-];
+  }));
